@@ -393,3 +393,45 @@ int main()
 
     return 0;
 }
+
+
+-----------------------------------------------------------------------------------
+
+
+
+#include <iostream>
+#include <fstream>
+#include <cstring>
+
+using namespace std;
+
+struct Proccessor
+{
+	char manufacturer[30];
+	char modul[30];
+	char socket[30];
+	int process;
+	int cores;
+	double price;
+	double frequency;
+};
+
+int main() {
+	setlocale(LC_ALL, "Russian");
+
+	int choise;
+	Proccessor proccessor;
+
+	do {
+		cout << "\nКаталог процессов\n";
+		cout << "1. Ввод данных\n";
+		cout << "2. Вывод данных\n";
+		cout << "3. Поиск\n";
+		cout << "4. Выход\n";
+		cout << "Выберите пункт: ";
+		cin >> choise;
+		switch (choise) {
+
+		}
+	}
+}
