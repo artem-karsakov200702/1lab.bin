@@ -1,98 +1,120 @@
 #include <iostream>
 #include <fstream>
 #include <cstring>
+#include <iomanip>
 
 using namespace std;
 
-struct Car
+struct Processor
 {
     char brand[20];
-    char model[20];
-    int year;
+    char model[30];
+    char socket[15];
+    int cores;
+    double frequency;
+    double cache;
     double price;
-    double engine;
-    char body[20];
 };
 
 int main()
 {
     setlocale(LC_ALL, "Russian");
 
+    Processor p;
+
     int choice;
-    Car car;
 
     do
     {
-        cout << "\n===== КАТАЛОГ АВТОМОБИЛЕЙ =====\n";
+        cout << "\n========== КАТАЛОГ ПРОЦЕССОРОВ ==========\n";
         cout << "1. Ввод данных\n";
-        cout << "2. Вывод всех\n";
+        cout << "2. Вывод данных\n";
         cout << "3. Поиск\n";
         cout << "4. Выход\n";
-        cout << "Выберите пункт: ";
+        cout << "==========================================\n";
+        cout << "Ваш выбор: ";
         cin >> choice;
 
         switch (choice)
         {
         case 1:
         {
-            cout << "\n===== ВВОД ДАННЫХ =====\n";
+            ofstream file("processors.dat", ios::binary | ios::app);
 
-            cout << "Введите марку: ";
-            cin >> car.brand;
-
-            cout << "Введите модель: ";
-            cin >> car.model;
-
-            cout << "Введите год выпуска: ";
-            cin >> car.year;
-
-            cout << "Введите цену: ";
-            cin >> car.price;
-
-            cout << "Введите объем двигателя: ";
-            cin >> car.engine;
-
-            cout << "Введите тип кузова: ";
-            cin >> car.body;
-
-            ofstream file("cars.dat", ios::binary | ios::app);
-
-            if (file)
+            if (!file)
             {
-                file.write((char*)&car, sizeof(Car));
-                file.close();
+                cout << "Ошибка открытия файла!\n";
+                break;
+            }
 
-                cout << "\nДанные сохранены.\n";
-            }
-            else
-            {
-                cout << "\nОшибка открытия файла.\n";
-            }
+            cout << "\n--- Ввод данных ---\n";
+
+            cout << "Производитель: ";
+            cin.ignore();
+            cin.getline(p.brand, 20);
+
+            cout << "Модель: ";
+            cin.getline(p.model, 30);
+
+            cout << "Сокет: ";
+            cin.getline(p.socket, 15);
+
+            cout << "Количество ядер: ";
+            cin >> p.cores;
+
+            cout << "Частота (ГГц): ";
+            cin >> p.frequency;
+
+            cout << "Кэш (МБ): ";
+            cin >> p.cache;
+
+            cout << "Цена: ";
+            cin >> p.price;
+
+            file.write((char*)&p, sizeof(p));
+
+            file.close();
+
+            cout << "\nДанные успешно добавлены!\n";
 
             break;
         }
 
         case 2:
         {
-            ifstream file("cars.dat", ios::binary);
+            ifstream file("processors.dat", ios::binary);
 
             if (!file)
             {
-                cout << "\nФайл не найден.\n";
+                cout << "\nФайл пока пуст.\n";
                 break;
             }
 
-            cout << "\n===== ВСЕ АВТОМОБИЛИ =====\n";
+            cout << "\n==================== СПИСОК ПРОЦЕССОРОВ ====================\n";
 
-            while (file.read((char*)&car, sizeof(Car)))
+            cout << left
+                << setw(15) << "Производитель"
+                << setw(25) << "Модель"
+                << setw(12) << "Сокет"
+                << setw(8) << "Ядра"
+                << setw(10) << "Частота"
+                << setw(10) << "Кэш"
+                << setw(10) << "Цена"
+                << endl;
+
+            cout << "--------------------------------------------------------------------------\n";
+
+            while (file.read((char*)&p, sizeof(p)))
             {
-                cout << "\nМарка: " << car.brand;
-                cout << "\nМодель: " << car.model;
-                cout << "\nГод выпуска: " << car.year;
-                cout << "\nЦена: " << car.price;
-                cout << "\nОбъем двигателя: " << car.engine;
-                cout << "\nТип кузова: " << car.body;
-                cout << "\n--------------------------\n";
+                cout << left
+                    << setw(15) << p.brand
+                    << setw(25) << p.model
+                    << setw(12) << p.socket
+                    << setw(8) << p.cores
+                    << setw(10) << p.frequency
+                    << setw(10) << p.cache
+                    << setw(10) << p.price
+                    << endl;
             }
 
             file.close();
@@ -102,336 +124,175 @@ int main()
 
         case 3:
         {
+            ifstream file("processors.dat", ios::binary);
+
+            if (!file)
+            {
+                cout << "\nФайл пока пуст.\n";
+                break;
+            }
+
             int searchChoice;
 
-            do
+            cout << "\n========== ПОИСК ==========\n";
+            cout << "1. Производитель\n";
+            cout << "2. Модель\n";
+            cout << "3. Сокет\n";
+            cout << "4. Количество ядер\n";
+            cout << "5. Частота\n";
+            cout << "6. Кэш\n";
+            cout << "7. Цена\n";
+            cout << "===========================\n";
+            cout << "Выберите поле: ";
+            cin >> searchChoice;
+
+            bool found = false;
+
+            // Поиск по строковым полям
+            if (searchChoice >= 1 && searchChoice <= 3)
             {
-                cout << "\n===== ПОИСК =====\n";
-                cout << "1. По марке\n";
-                cout << "2. По модели\n";
-                cout << "3. По году\n";
-                cout << "4. По цене\n";
-                cout << "5. По объему двигателя\n";
-                cout << "6. По типу кузова\n";
-                cout << "0. Назад\n";
-                cout << "Выберите пункт: ";
-                cin >> searchChoice;
+                char text[30];
 
-                switch (searchChoice)
+                cout << "Введите текст для поиска: ";
+                cin.ignore();
+                cin.getline(text, 30);
+
+                cout << "\nРезультат поиска:\n";
+
+                cout << left
+                    << setw(15) << "Производитель"
+                    << setw(25) << "Модель"
+                    << setw(12) << "Сокет"
+                    << setw(8) << "Ядра"
+                    << setw(10) << "Частота"
+                    << setw(10) << "Кэш"
+                    << setw(10) << "Цена"
+                    << endl;
+
+                cout << "--------------------------------------------------------------------------\n";
+
+                while (file.read((char*)&p, sizeof(p)))
                 {
-                case 1:
+                    bool result = false;
+
+                    if (searchChoice == 1)
+                    {
+                        if (strstr(p.brand, text) != NULL)
+                            result = true;
+                    }
+
+                    if (searchChoice == 2)
+                    {
+                        if (strstr(p.model, text) != NULL)
+                            result = true;
+                    }
+
+                    if (searchChoice == 3)
+                    {
+                        if (strstr(p.socket, text) != NULL)
+                            result = true;
+                    }
+
+                    if (result)
+                    {
+                        found = true;
+
+                        cout << left
+                            << setw(15) << p.brand
+                            << setw(25) << p.model
+                            << setw(12) << p.socket
+                            << setw(8) << p.cores
+                            << setw(10) << p.frequency
+                            << setw(10) << p.cache
+                            << setw(10) << p.price
+                            << endl;
+                    }
+                }
+            }
+
+            // Поиск по числовым полям
+            if (searchChoice >= 4 && searchChoice <= 7)
+            {
+                double minValue;
+                double maxValue;
+
+                cout << "Введите минимальное значение: ";
+                cin >> minValue;
+
+                cout << "Введите максимальное значение: ";
+                cin >> maxValue;
+
+                cout << "\nРезультат поиска:\n";
+
+                cout << left
+                    << setw(15) << "Производитель"
+                    << setw(25) << "Модель"
+                    << setw(12) << "Сокет"
+                    << setw(8) << "Ядра"
+                    << setw(10) << "Частота"
+                    << setw(10) << "Кэш"
+                    << setw(10) << "Цена"
+                    << endl;
+
+                cout << "--------------------------------------------------------------------------\n";
+
+                while (file.read((char*)&p, sizeof(p)))
                 {
-                    char brand[20];
+                    double value = 0;
 
-                    cout << "\nВведите марку: ";
-                    cin >> brand;
+                    if (searchChoice == 4)
+                        value = p.cores;
 
-                    ifstream file("cars.dat", ios::binary);
+                    if (searchChoice == 5)
+                        value = p.frequency;
 
-                    if (!file)
+                    if (searchChoice == 6)
+                        value = p.cache;
+
+                    if (searchChoice == 7)
+                        value = p.price;
+
+                    if (value >= minValue && value <= maxValue)
                     {
-                        cout << "Файл не найден.\n";
-                        break;
+                        found = true;
+
+                        cout << left
+                            << setw(15) << p.brand
+                            << setw(25) << p.model
+                            << setw(12) << p.socket
+                            << setw(8) << p.cores
+                            << setw(10) << p.frequency
+                            << setw(10) << p.cache
+                            << setw(10) << p.price
+                            << endl;
                     }
-
-                    bool found = false;
-
-                    while (file.read((char*)&car, sizeof(Car)))
-                    {
-                        if (strcmp(car.brand, brand) == 0)
-                        {
-                            cout << "\nМарка: " << car.brand;
-                            cout << "\nМодель: " << car.model;
-                            cout << "\nГод выпуска: " << car.year;
-                            cout << "\nЦена: " << car.price;
-                            cout << "\nОбъем двигателя: " << car.engine;
-                            cout << "\nТип кузова: " << car.body << "\n";
-
-                            found = true;
-                        }
-                    }
-
-                    if (!found)
-                        cout << "Автомобиль не найден.\n";
-
-                    file.close();
-
-                    break;
                 }
+            }
 
-                case 2:
-                {
-                    char model[20];
+            if (!found)
+            {
+                cout << "\nНичего не найдено.\n";
+            }
 
-                    cout << "\nВведите модель: ";
-                    cin >> model;
-
-                    ifstream file("cars.dat", ios::binary);
-
-                    if (!file)
-                    {
-                        cout << "Файл не найден.\n";
-                        break;
-                    }
-
-                    bool found = false;
-
-                    while (file.read((char*)&car, sizeof(Car)))
-                    {
-                        if (strcmp(car.model, model) == 0)
-                        {
-                            cout << "\nМарка: " << car.brand;
-                            cout << "\nМодель: " << car.model;
-                            cout << "\nГод выпуска: " << car.year;
-                            cout << "\nЦена: " << car.price;
-                            cout << "\nОбъем двигателя: " << car.engine;
-                            cout << "\nТип кузова: " << car.body << "\n";
-
-                            found = true;
-                        }
-                    }
-
-                    if (!found)
-                        cout << "Автомобиль не найден.\n";
-
-                    file.close();
-
-                    break;
-                }
-
-                case 3:
-                {
-                    int minYear, maxYear;
-
-                    cout << "\nВведите минимальный год: ";
-                    cin >> minYear;
-
-                    cout << "Введите максимальный год: ";
-                    cin >> maxYear;
-
-                    ifstream file("cars.dat", ios::binary);
-
-                    if (!file)
-                    {
-                        cout << "Файл не найден.\n";
-                        break;
-                    }
-
-                    bool found = false;
-
-                    while (file.read((char*)&car, sizeof(Car)))
-                    {
-                        if (car.year >= minYear && car.year <= maxYear)
-                        {
-                            cout << "\nМарка: " << car.brand;
-                            cout << "\nМодель: " << car.model;
-                            cout << "\nГод выпуска: " << car.year;
-                            cout << "\nЦена: " << car.price;
-                            cout << "\nОбъем двигателя: " << car.engine;
-                            cout << "\nТип кузова: " << car.body << "\n";
-
-                            found = true;
-                        }
-                    }
-
-                    if (!found)
-                        cout << "Автомобили не найдены.\n";
-
-                    file.close();
-
-                    break;
-                }
-
-                case 4:
-                {
-                    double minPrice, maxPrice;
-
-                    cout << "\nВведите минимальную цену: ";
-                    cin >> minPrice;
-
-                    cout << "Введите максимальную цену: ";
-                    cin >> maxPrice;
-
-                    ifstream file("cars.dat", ios::binary);
-
-                    if (!file)
-                    {
-                        cout << "Файл не найден.\n";
-                        break;
-                    }
-
-                    bool found = false;
-
-                    while (file.read((char*)&car, sizeof(Car)))
-                    {
-                        if (car.price >= minPrice && car.price <= maxPrice)
-                        {
-                            cout << "\nМарка: " << car.brand;
-                            cout << "\nМодель: " << car.model;
-                            cout << "\nГод выпуска: " << car.year;
-                            cout << "\nЦена: " << car.price;
-                            cout << "\nОбъем двигателя: " << car.engine;
-                            cout << "\nТип кузова: " << car.body << "\n";
-
-                            found = true;
-                        }
-                    }
-
-                    if (!found)
-                        cout << "Автомобили не найдены.\n";
-
-                    file.close();
-
-                    break;
-                }
-
-                case 5:
-                {
-                    double minEngine, maxEngine;
-
-                    cout << "\nВведите минимальный объем двигателя: ";
-                    cin >> minEngine;
-
-                    cout << "Введите максимальный объем двигателя: ";
-                    cin >> maxEngine;
-
-                    ifstream file("cars.dat", ios::binary);
-
-                    if (!file)
-                    {
-                        cout << "Файл не найден.\n";
-                        break;
-                    }
-
-                    bool found = false;
-
-                    while (file.read((char*)&car, sizeof(Car)))
-                    {
-                        if (car.engine >= minEngine &&
-                            car.engine <= maxEngine)
-                        {
-                            cout << "\nМарка: " << car.brand;
-                            cout << "\nМодель: " << car.model;
-                            cout << "\nГод выпуска: " << car.year;
-                            cout << "\nЦена: " << car.price;
-                            cout << "\nОбъем двигателя: " << car.engine;
-                            cout << "\nТип кузова: " << car.body << "\n";
-
-                            found = true;
-                        }
-                    }
-
-                    if (!found)
-                        cout << "Автомобили не найдены.\n";
-
-                    file.close();
-
-                    break;
-                }
-
-                case 6:
-                {
-                    char body[20];
-
-                    cout << "\nВведите тип кузова: ";
-                    cin >> body;
-
-                    ifstream file("cars.dat", ios::binary);
-
-                    if (!file)
-                    {
-                        cout << "Файл не найден.\n";
-                        break;
-                    }
-
-                    bool found = false;
-
-                    while (file.read((char*)&car, sizeof(Car)))
-                    {
-                        if (strcmp(car.body, body) == 0)
-                        {
-                            cout << "\nМарка: " << car.brand;
-                            cout << "\nМодель: " << car.model;
-                            cout << "\nГод выпуска: " << car.year;
-                            cout << "\nЦена: " << car.price;
-                            cout << "\nОбъем двигателя: " << car.engine;
-                            cout << "\nТип кузова: " << car.body << "\n";
-
-                            found = true;
-                        }
-                    }
-
-                    if (!found)
-                        cout << "Автомобили не найдены.\n";
-
-                    file.close();
-
-                    break;
-                }
-
-                case 0:
-                    break;
-
-                default:
-                    cout << "Неверный пункт меню.\n";
-                }
-
-            } while (searchChoice != 0);
+            file.close();
 
             break;
         }
 
         case 4:
-            cout << "\nВыход из программы.\n";
+        {
+            cout << "\nПрограмма завершена.\n";
             break;
+        }
 
         default:
-            cout << "\nНеверный пункт меню.\n";
+        {
+            cout << "\nНеверный пункт меню!\n";
+            break;
+        }
         }
 
     } while (choice != 4);
 
     return 0;
-}
-
-
------------------------------------------------------------------------------------
-
-
-
-#include <iostream>
-#include <fstream>
-#include <cstring>
-
-using namespace std;
-
-struct Proccessor
-{
-	char manufacturer[30];
-	char modul[30];
-	char socket[30];
-	int process;
-	int cores;
-	double price;
-	double frequency;
-};
-
-int main() {
-	setlocale(LC_ALL, "Russian");
-
-	int choise;
-	Proccessor proccessor;
-
-	do {
-		cout << "\nКаталог процессов\n";
-		cout << "1. Ввод данных\n";
-		cout << "2. Вывод данных\n";
-		cout << "3. Поиск\n";
-		cout << "4. Выход\n";
-		cout << "Выберите пункт: ";
-		cin >> choise;
-		switch (choise) {
-
-		}
-	}
 }
