@@ -1,0 +1,291 @@
+#include <iostream>
+#include <fstream>
+#include <cstring>
+#include <iomanip>
+
+using namespace std;
+
+struct Processor
+{
+    char brand[20];
+    char model[30];
+    char socket[15];
+    int cores;
+    double frequency;
+    double cache;
+    double price;
+};
+
+// Прототипы функций
+void addProcessor();
+void showProcessors();
+void searchProcessor();
+void printHeader();
+void printProcessor(Processor p);
+
+int main()
+{
+    setlocale(LC_ALL, "Russian");
+
+    int choice;
+
+    do
+    {
+        cout << "\n========== КАТАЛОГ ПРОЦЕССОРОВ ==========\n";
+        cout << "1. Ввод данных\n";
+        cout << "2. Вывод данных\n";
+        cout << "3. Поиск\n";
+        cout << "4. Выход\n";
+        cout << "==========================================\n";
+        cout << "Ваш выбор: ";
+        cin >> choice;
+
+        switch (choice)
+        {
+        case 1:
+            addProcessor();
+            break;
+
+        case 2:
+            showProcessors();
+            break;
+
+        case 3:
+            searchProcessor();
+            break;
+
+        case 4:
+            cout << "\nПрограмма завершена.\n";
+            break;
+
+        default:
+            cout << "\nНеверный пункт меню!\n";
+            break;
+        }
+
+    } while (choice != 4);
+
+    return 0;
+}
+
+// Функция добавления процессора
+void addProcessor()
+{
+    Processor p;
+
+    ofstream file("processors.dat", ios::binary | ios::app);
+
+    if (!file)
+    {
+        cout << "Ошибка открытия файла!\n";
+        return;
+    }
+
+    cout << "\n--- Ввод данных ---\n";
+
+    cout << "Производитель: ";
+    cin.ignore();
+    cin.getline(p.brand, 20);
+
+    cout << "Модель: ";
+    cin.getline(p.model, 30);
+
+    cout << "Сокет: ";
+    cin.getline(p.socket, 15);
+
+    cout << "Количество ядер: ";
+    cin >> p.cores;
+
+    cout << "Частота (ГГц): ";
+    cin >> p.frequency;
+
+    cout << "Кэш (МБ): ";
+    cin >> p.cache;
+
+    cout << "Цена: ";
+    cin >> p.price;
+
+    file.write((char*)&p, sizeof(p));
+
+    file.close();
+
+    cout << "\nДанные успешно добавлены!\n";
+}
+
+// Функция вывода заголовка таблицы
+void printHeader()
+{
+    cout << left
+         << setw(15) << "Производитель"
+         << setw(25) << "Модель"
+         << setw(12) << "Сокет"
+         << setw(8) << "Ядра"
+         << setw(10) << "Частота"
+         << setw(10) << "Кэш"
+         << setw(10) << "Цена"
+         << endl;
+
+    cout << "--------------------------------------------------------------------------\n";
+}
+
+// Функция вывода одного процессора
+void printProcessor(Processor p)
+{
+    cout << left
+         << setw(15) << p.brand
+         << setw(25) << p.model
+         << setw(12) << p.socket
+         << setw(8) << p.cores
+         << setw(10) << p.frequency
+         << setw(10) << p.cache
+         << setw(10) << p.price
+         << endl;
+}
+
+// Функция вывода всех процессоров
+void showProcessors()
+{
+    Processor p;
+
+    ifstream file("processors.dat", ios::binary);
+
+    if (!file)
+    {
+        cout << "\nФайл пока пуст.\n";
+        return;
+    }
+
+    cout << "\n==================== СПИСОК ПРОЦЕССОРОВ ====================\n";
+
+    printHeader();
+
+    while (file.read((char*)&p, sizeof(p)))
+    {
+        printProcessor(p);
+    }
+
+    file.close();
+}
+
+// Функция поиска процессоров
+void searchProcessor()
+{
+    Processor p;
+
+    ifstream file("processors.dat", ios::binary);
+
+    if (!file)
+    {
+        cout << "\nФайл пока пуст.\n";
+        return;
+    }
+
+    int searchChoice;
+
+    cout << "\n========== ПОИСК ==========\n";
+    cout << "1. Производитель\n";
+    cout << "2. Модель\n";
+    cout << "3. Сокет\n";
+    cout << "4. Количество ядер\n";
+    cout << "5. Частота\n";
+    cout << "6. Кэш\n";
+    cout << "7. Цена\n";
+    cout << "===========================\n";
+    cout << "Выберите поле: ";
+    cin >> searchChoice;
+
+    bool found = false;
+
+    // Поиск по строковым полям
+    if (searchChoice >= 1 && searchChoice <= 3)
+    {
+        char text[30];
+
+        cout << "Введите текст для поиска: ";
+        cin.ignore();
+        cin.getline(text, 30);
+
+        cout << "\nРезультат поиска:\n";
+        printHeader();
+
+        while (file.read((char*)&p, sizeof(p)))
+        {
+            bool result = false;
+
+            if (searchChoice == 1)
+            {
+                if (strstr(p.brand, text) != NULL)
+                    result = true;
+            }
+
+            if (searchChoice == 2)
+            {
+                if (strstr(p.model, text) != NULL)
+                    result = true;
+            }
+
+            if (searchChoice == 3)
+            {
+                if (strstr(p.socket, text) != NULL)
+                    result = true;
+            }
+
+            if (result)
+            {
+                found = true;
+                printProcessor(p);
+            }
+        }
+    }
+    // Поиск по числовым полям
+    else if (searchChoice >= 4 && searchChoice <= 7)
+    {
+        double minValue;
+        double maxValue;
+
+        cout << "Введите минимальное значение: ";
+        cin >> minValue;
+
+        cout << "Введите максимальное значение: ";
+        cin >> maxValue;
+
+        cout << "\nРезультат поиска:\n";
+        printHeader();
+
+        while (file.read((char*)&p, sizeof(p)))
+        {
+            double value = 0;
+
+            if (searchChoice == 4)
+                value = p.cores;
+
+            if (searchChoice == 5)
+                value = p.frequency;
+
+            if (searchChoice == 6)
+                value = p.cache;
+
+            if (searchChoice == 7)
+                value = p.price;
+
+            if (value >= minValue && value <= maxValue)
+            {
+                found = true;
+                printProcessor(p);
+            }
+        }
+    }
+    else
+    {
+        cout << "\nНеверный пункт поиска!\n";
+        file.close();
+        return;
+    }
+
+    if (!found)
+    {
+        cout << "\nНичего не найдено.\n";
+    }
+
+    file.close();
+}
