@@ -1,7 +1,9 @@
+
 #include <iostream>
 #include <fstream>
 #include <cstring>
 #include <iomanip>
+#include <clocale>
 
 using namespace std;
 
@@ -20,7 +22,7 @@ int main()
 {
     setlocale(LC_ALL, "Russian");
 
-    Processor* p = new Processor;
+    Processor p;
 
     int choice;
 
@@ -50,27 +52,27 @@ int main()
 
             cout << "Производитель: ";
             cin.ignore();
-            cin.getline(p->brand, 20);
+            cin.getline(p.brand, 20);
 
             cout << "Модель: ";
-            cin.getline(p->model, 30);
+            cin.getline(p.model, 30);
 
             cout << "Сокет: ";
-            cin.getline(p->socket, 15);
+            cin.getline(p.socket, 15);
 
             cout << "Количество ядер: ";
-            cin >> p->cores;
+            cin >> p.cores;
 
             cout << "Частота (ГГц): ";
-            cin >> p->frequency;
+            cin >> p.frequency;
 
             cout << "Кэш (МБ): ";
-            cin >> p->cache;
+            cin >> p.cache;
 
             cout << "Цена: ";
-            cin >> p->price;
+            cin >> p.price;
 
-            file.write((char*)p, sizeof(*p));
+            file.write((char*)&p, sizeof(p));
 
             file.close();
 
@@ -103,16 +105,16 @@ int main()
 
             cout << "------------------------------------------------------------------------------------\n";
 
-            while (file.read((char*)p, sizeof(*p)))
+            while (file.read((char*)&p, sizeof(p)))
             {
                 cout << left
-                    << setw(15) << p->brand
-                    << setw(25) << p->model
-                    << setw(12) << p->socket
-                    << setw(8) << p->cores
-                    << setw(10) << p->frequency
-                    << setw(10) << p->cache
-                    << setw(10) << p->price
+                    << setw(15) << p.brand
+                    << setw(25) << p.model
+                    << setw(12) << p.socket
+                    << setw(8) << p.cores
+                    << setw(10) << p.frequency
+                    << setw(10) << p.cache
+                    << setw(10) << p.price
                     << endl;
             }
 
@@ -168,25 +170,25 @@ int main()
 
                 cout << "--------------------------------------------------------------------------\n";
 
-                while (file.read((char*)p, sizeof(*p)))
+                while (file.read((char*)&p, sizeof(p)))
                 {
                     bool result = false;
 
                     if (searchChoice == 1)
                     {
-                        if (strstr(p->brand, text) != NULL)
+                        if (strstr(p.brand, text) != NULL)
                             result = true;
                     }
 
                     if (searchChoice == 2)
                     {
-                        if (strstr(p->model, text) != NULL)
+                        if (strstr(p.model, text) != NULL)
                             result = true;
                     }
 
                     if (searchChoice == 3)
                     {
-                        if (strstr(p->socket, text) != NULL)
+                        if (strstr(p.socket, text) != NULL)
                             result = true;
                     }
 
@@ -195,13 +197,13 @@ int main()
                         found = true;
 
                         cout << left
-                            << setw(15) << p->brand
-                            << setw(25) << p->model
-                            << setw(12) << p->socket
-                            << setw(8) << p->cores
-                            << setw(10) << p->frequency
-                            << setw(10) << p->cache
-                            << setw(10) << p->price
+                            << setw(15) << p.brand
+                            << setw(25) << p.model
+                            << setw(12) << p.socket
+                            << setw(8) << p.cores
+                            << setw(10) << p.frequency
+                            << setw(10) << p.cache
+                            << setw(10) << p.price
                             << endl;
                     }
                 }
@@ -232,40 +234,44 @@ int main()
 
                 cout << "--------------------------------------------------------------------------\n";
 
-                while (file.read((char*)p, sizeof(*p)))
+                while (file.read((char*)&p, sizeof(p)))
                 {
                     double value = 0;
 
                     if (searchChoice == 4)
-                        value = p->cores;
+                        value = p.cores;
 
                     if (searchChoice == 5)
-                        value = p->frequency;
+                        value = p.frequency;
 
                     if (searchChoice == 6)
-                        value = p->cache;
+                        value = p.cache;
 
                     if (searchChoice == 7)
-                        value = p->price;
+                        value = p.price;
 
                     if (value >= minValue && value <= maxValue)
                     {
                         found = true;
 
                         cout << left
-                            << setw(15) << p->brand
-                            << setw(25) << p->model
-                            << setw(12) << p->socket
-                            << setw(8) << p->cores
-                            << setw(10) << p->frequency
-                            << setw(10) << p->cache
-                            << setw(10) << p->price
+                            << setw(15) << p.brand
+                            << setw(25) << p.model
+                            << setw(12) << p.socket
+                            << setw(8) << p.cores
+                            << setw(10) << p.frequency
+                            << setw(10) << p.cache
+                            << setw(10) << p.price
                             << endl;
                     }
                 }
             }
 
-            if (!found)
+            if (searchChoice < 1 || searchChoice > 7)
+            {
+                cout << "\nНеверный пункт поиска.\n";
+            }
+            else if (!found)
             {
                 cout << "\nНичего не найдено.\n";
             }
@@ -290,7 +296,6 @@ int main()
 
     } while (choice != 4);
 
-    delete p;
-
     return 0;
 }
+
